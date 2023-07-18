@@ -1,1 +1,127 @@
-PARTICIPANTS: use this file for creating the class diagram in mastery task 01
+@startuml
+
+class CatalogItemVersion {
+    - @DynamoDBHashKey bookId: String
+    - @DynamoDBRangeKey version: int
+    - inactive: boolean
+    - title: String
+    - author: String
+    - text: String
+    - genre: BookGenre
+}
+
+class PublishingStatusItem {
+    - @DynamoDBHashKey publishingRecordId: String
+    - @DynamoDBRangeKey status: PublishingRecordStatus
+    - statusMessage: String
+    - bookId: String
+}
+
+class GetBookActivity {
+    - recommendationServiceClient: RecommendationsServiceClient
+    - catalogDao: CatalogDao
+
+    + execute(request: GetBookRequest): GetBookResponse
+}
+
+
+
+class SubmitBookForPublishingActivity {
+    - publishingStatusDao: PublishingStatusDao
+
+    + execute(request: SubmitBookForPublishingRequest): SubmitBookForPublishingResponse
+}
+
+
+class RecommendationsServiceClient {
+    - recommendationService: RecommendationsService
+
+    + getBookRecommendations(genre: BookGenre ): List<BookRecommendation>
+}
+
+together {
+    class GetPublishingStatusActivity {
+        + execute(publishingStatusRequest: PublishingStatusRequest): GetPublishingStatusResponse
+    }
+
+    class PublishingStatusNotFoundException {
+    }
+
+    class RemoveBookFromCatalogActivity {
+        + execute(removeBookFromCatalogRequest: RemoveBookFromCatalogRequest): RemoveBookFromCatalogResponse
+    }
+}
+
+together {
+    class CatalogDao {
+      - dynamoDbMapper: DynamoDBMapper
+
+      + getBookFromCatalog(bookId: String): CatalogItemVersion
+      - getLatestVersionOfBook(bookId: String): CatalogItemVersion
+    }
+
+    class PublishingStatusDao {
+        - ADDITIONAL_NOTES_PREFIX: String
+        - dynamoDbMapper: DynamoDBMapper
+
+        + setPublishingStatus(publishingRecordId: String,
+                              publishingRecordStatus: PublishingRecordStatus,
+                              bookId: String ): PublishingStatusItem
+
+        + setPublishingStatus(publishingRecordId: String,
+                                  publishingRecordStatus: PublishingRecordStatus,
+                                  bookId: String,
+                                  message: string): PublishingStatusItem
+    }
+}
+class BookNotFoundException {
+}
+
+
+
+
+GetBookActivity -- RecommendationsServiceClient
+GetBookActivity -- CatalogDao
+SubmitBookForPublishingActivity -- PublishingStatusDao
+RecommendationsServiceClient -- RecommendationsService
+CatalogDao -- CatalogItemVersion
+PublishingStatusDao -- PublishingStatusItem
+CatalogDao ..> BookNotFoundException
+
+RemoveBookFromCatalogActivity -[hidden]- GetPublishingStatusActivity
+GetPublishingStatusActivity -[hidden]- PublishingStatusNotFoundException
+
+@enduml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
