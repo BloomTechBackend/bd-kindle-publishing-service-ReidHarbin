@@ -7,6 +7,7 @@ import com.amazon.ata.kindlepublishingservice.utils.KindlePublishingUtils;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -77,4 +78,55 @@ public class PublishingStatusDao {
         dynamoDbMapper.save(item);
         return item;
     }
+
+    public List<PublishingStatusItem> getPublishingStatuses(String publishingRecordId) {
+        PublishingStatusItem queryPublishingStatusItem = new PublishingStatusItem();
+        queryPublishingStatusItem.setPublishingRecordId(publishingRecordId);
+
+        DynamoDBQueryExpression<PublishingStatusItem> queryExpression =
+                new DynamoDBQueryExpression<PublishingStatusItem>()
+                    .withHashKeyValues(queryPublishingStatusItem);
+
+        PaginatedQueryList<PublishingStatusItem> queryList =
+                dynamoDbMapper.query(PublishingStatusItem.class, queryExpression);
+
+        if (queryList == null || queryList.isEmpty()) {
+            throw new PublishingStatusNotFoundException("Publishing status not found for given Id");
+        }
+        return queryList;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

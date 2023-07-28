@@ -9,6 +9,7 @@ import com.amazon.ata.kindlepublishingservice.dynamodb.models.PublishingStatusIt
 import com.amazon.ata.kindlepublishingservice.enums.PublishingRecordStatus;
 import com.amazon.ata.kindlepublishingservice.publishing.BookPublishRequest;
 
+import com.amazon.ata.kindlepublishingservice.publishing.BookPublishRequestManager;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -24,15 +25,20 @@ import javax.inject.Inject;
 public class SubmitBookForPublishingActivity {
 
     private PublishingStatusDao publishingStatusDao;
-
+    private CatalogDao catalogDao;
+    private BookPublishRequestManager bookPublishRequestManager;
     /**
      * Instantiates a new SubmitBookForPublishingActivity object.
      *
      * @param publishingStatusDao PublishingStatusDao to access the publishing status table.
      */
     @Inject
-    public SubmitBookForPublishingActivity(PublishingStatusDao publishingStatusDao) {
+    public SubmitBookForPublishingActivity(PublishingStatusDao publishingStatusDao,
+                                           CatalogDao catalogDao,
+                                           BookPublishRequestManager bookPublishRequestManager) {
         this.publishingStatusDao = publishingStatusDao;
+        this.catalogDao = catalogDao;
+        this.bookPublishRequestManager = bookPublishRequestManager;
     }
 
     /**
@@ -47,8 +53,10 @@ public class SubmitBookForPublishingActivity {
     public SubmitBookForPublishingResponse execute(SubmitBookForPublishingRequest request) {
         final BookPublishRequest bookPublishRequest = BookPublishRequestConverter.toBookPublishRequest(request);
 
-        // TODO: If there is a book ID in the request, validate it exists in our catalog
-        // TODO: Submit the BookPublishRequest for processing
+        if (request.getBookId() != null) {
+            catalogDao.validateBookExists(bookPublishRequest.getBookId());
+        }
+        bookPublishRequestManager.addBookPublishRequest(bookPublishRequest);
 
         PublishingStatusItem item =  publishingStatusDao.setPublishingStatus(bookPublishRequest.getPublishingRecordId(),
                 PublishingRecordStatus.QUEUED,
