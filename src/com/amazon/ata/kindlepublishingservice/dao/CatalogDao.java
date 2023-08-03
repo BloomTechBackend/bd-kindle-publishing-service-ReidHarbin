@@ -8,6 +8,7 @@ import com.amazon.ata.kindlepublishingservice.utils.KindlePublishingUtils;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 import javax.inject.Inject;
@@ -71,4 +72,62 @@ public class CatalogDao {
         dynamoDbMapper.save(catalogItemVersion);
     }
 
+    public CatalogItemVersion createOrUpdateBook(KindleFormattedBook kindleFormattedBook) {
+        CatalogItemVersion book = new CatalogItemVersion();
+        book.setAuthor(kindleFormattedBook.getAuthor());
+        book.setText(kindleFormattedBook.getText());
+        book.setGenre(kindleFormattedBook.getGenre());
+        book.setTitle(kindleFormattedBook.getTitle());
+        book.setInactive(false);
+
+        String inputBookId = kindleFormattedBook.getBookId();
+        if (inputBookId == null) {
+            book.setBookId(KindlePublishingUtils.generateBookId());
+            book.setVersion(1);
+        } else {
+            validateBookExists(inputBookId);
+            CatalogItemVersion latestVersion = getLatestVersionOfBook(inputBookId);
+
+            deleteBook(latestVersion);
+
+            book.setBookId(inputBookId);
+            book.setVersion(latestVersion.getVersion() + 1);
+        }
+        dynamoDbMapper.save(book);
+        return book;
+    }
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
