@@ -223,10 +223,7 @@ Below are the data models for the DynamoDB tables.
 
 ## Class Diagram
 
-<**MT01.MILESTONE 1**>
-
-[Link to class diagram PUML file](src/resources/mastery-task1-kindle-publishing-CD.png)
-
+![Link to class diagram PUML file](src/resources/mastery-task1-kindle-publishing-CD.png)
 
 ## API Sequence Diagrams
 
